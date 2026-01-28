@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Whiz: Fun Multiplication Flashcards</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        
+        header {
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
+            color: white;
+            padding: 25px;
+            text-align: center;
+            border-bottom: 5px solid #ff6b4a;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .content-wrapper {
+            display: flex;
+            flex-direction: column;
+            padding: 25px;
+        }
+        
+        @media (min-width: 768px) {
+            .content-wrapper {
+                flex-direction: row;
+            }
+        }
+        
+        .flashcard-section {
+            flex: 1;
+            padding: 20px;
+        }
+        
+        .instructions {
+            flex: 1;
+            padding: 20px;
+            background-color: #f9f9ff;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .instructions h2 {
+            color: #2575fc;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px dashed #2575fc;
+        }
+        
+        .instructions ul {
+            padding-left: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        
+        .flashcard-container {
+            perspective: 1000px;
+            height: 320px;
+            margin-bottom: 30px;
+        }
+        
+        .flashcard {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .flashcard.flipped {
+            transform: rotateY(180deg);
+        }
+        
+        .flashcard-front, .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+        }
+        
+        .flashcard-front {
+            background: linear-gradient(135deg, #ffffff, #f5f7fa);
+            border: 3px solid #6a11cb;
+        }
+        
+        .flashcard-back {
+            background: linear-gradient(135deg, #f5f7fa, #e3e9ff);
+            border: 3px solid #2575fc;
+            transform: rotateY(180deg);
+            overflow-y: auto;
+        }
+        
+        .problem {
+            font-size: 4.5rem;
+            font-weight: bold;
+            color: #6a11cb;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .answer-input {
+            width: 200px;
+            padding: 15px;
+            font-size: 2rem;
+            text-align: center;
+            border: 3px solid #2575fc;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+        
+        .answer-input:focus {
+            outline: none;
+            border-color: #ff7e5f;
+            box-shadow: 0 0 10px rgba(255, 126, 95, 0.5);
+        }
+        
+        .submit-btn {
+            background: linear-gradient(to right, #2575fc, #6a11cb);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(37, 117, 252, 0.3);
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(37, 117, 252, 0.4);
+        }
+        
+        .result {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .correct {
+            color: #2ecc71;
+        }
+        
+        .incorrect {
+            color: #e74c3c;
+        }
+        
+        .correct-answer {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            color: #2575fc;
+        }
+        
+        .hint-box, .story-box {
+            background-color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            border-left: 5px solid #ff7e5f;
+        }
+        
+        .hint-box h3, .story-box h3 {
+            color: #ff7e5f;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+        
+        .story-box {
+            border-left-color: #6a11cb;
+        }
+        
+        .story-box h3 {
+            color: #6a11cb;
+        }
+        
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        .nav-btn {
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
+            color: white;
+            border: none;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(255, 126, 95, 0.3);
+        }
+        
+        .nav-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 15px rgba(255, 126, 95, 0.4);
+        }
+        
+        .nav-btn:disabled {
+            background: linear-gradient(to right, #cccccc, #dddddd);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .card-counter {
+            font-size: 1.2rem;
+            color: #6a11cb;
+            font-weight: bold;
+            align-self: center;
+        }
+        
+        .progress-container {
+            margin-top: 20px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            height: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            width: 0%;
+            transition: width 0.5s;
+        }
+        
+        .table-selector {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .table-btn {
+            background-color: #f0f0ff;
+            border: 2px solid #6a11cb;
+            border-radius: 8px;
+            padding: 8px 15px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .table-btn:hover {
+            background-color: #6a11cb;
+            color: white;
+        }
+        
+        .table-btn.active {
+            background-color: #6a11cb;
+            color: white;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            color: white;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        @media (max-width: 768px) {
+            .problem {
+                font-size: 3.5rem;
+            }
+            
+            .answer-input {
+                width: 150px;
+                font-size: 1.5rem;
+                padding: 12px;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .problem {
+                font-size: 2.8rem;
+            }
+            
+            .flashcard-container {
+                height: 280px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .content-wrapper {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-times-circle"></i> Math Whiz Flashcards</h1>
+            <p class="subtitle">Learn multiplication with fun hints and stories!</p>
+        </header>
+        
+        <div class="content-wrapper">
+            <section class="flashcard-section">
+                <div class="flashcard-container">
+                    <div class="flashcard" id="flashcard">
+                        <div class="flashcard-front">
+                            <div class="problem" id="problem">7 × 8</div>
+                            <input type="number" class="answer-input" id="answer-input" placeholder="Your answer" autocomplete="off">
+                            <button class="submit-btn" id="submit-btn">Check Answer</button>
+                            <p class="hint-text" id="hint-text">Hint: 5, 6, 7, 8 → 56!</p>
+                        </div>
+                        <div class="flashcard-back">
+                            <div class="result" id="result">Correct! <i class="fas fa-check-circle"></i></div>
+                            <div class="correct-answer" id="correct-answer">7 × 8 = 56</div>
+                            
+                            <div class="hint-box">
+                                <h3><i class="fas fa-lightbulb"></i> Helpful Hint</h3>
+                                <p id="hint-content">For 7×8, remember "5, 6, 7, 8" — the answer is 56!</p>
+                            </div>
+                            
+                            <div class="story-box">
+                                <h3><i class="fas fa-book-open"></i> Fun Story</h3>
+                                <p id="story-content">Seven and Eight went fishing. Seven caught 5 fish, Eight caught 6. Together they caught 56 fish because 7×8=56!</p>
+                            </div>
+                            
+                            <button class="submit-btn" id="flip-back-btn" style="margin-top: 20px;">Try Another</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="navigation">
+                    <button class="nav-btn" id="prev-btn"><i class="fas fa-chevron-left"></i></button>
+                    <div class="card-counter" id="card-counter">Card 1 of 10</div>
+                    <button class="nav-btn" id="next-btn"><i class="fas fa-chevron-right"></i></button>
+                </div>
+                
+                <div class="progress-container">
+                    <div class="progress-bar" id="progress-bar"></div>
+                </div>
+                
+                <div class="table-selector">
+                    <div class="table-btn active" data-table="all">All Tables</div>
+                    <div class="table-btn" data-table="2">2× Table</div>
+                    <div class="table-btn" data-table="5">5× Table</div>
+                    <div class="table-btn" data-table="10">10× Table</div>
+                    <div class="table-btn" data-table="3">3× Table</div>
+                    <div class="table-btn" data-table="4">4× Table</div>
+                    <div class="table-btn" data-table="6">6× Table</div>
+                    <div class="table-btn" data-table="7">7× Table</div>
+                    <div class="table-btn" data-table="8">8× Table</div>
+                    <div class="table-btn" data-table="9">9× Table</div>
+                </div>
+            </section>
+            
+            <section class="instructions">
+                <h2><i class="fas fa-graduation-cap"></i> How to Use These Flashcards</h2>
+                <ul>
+                    <li><strong>Type your answer</strong> in the box and click "Check Answer"</li>
+                    <li>The card will flip to show if you're correct</li>
+                    <li>Each card includes a <strong>helpful hint</strong> based on patterns and tricks</li>
+                    <li>Enjoy the <strong>funny stories</strong> to help remember tricky facts</li>
+                    <li>Use the arrow buttons to navigate between cards</li>
+                    <li>Select specific times tables to focus on certain numbers</li>
+                    <li>Track your progress with the progress bar at the bottom</li>
+                </ul>
+                
+                <h2><i class="fas fa-trophy"></i> Multiplication Tips</h2>
+                <ul>
+                    <li><strong>×2 Table:</strong> Just double the number!</li>
+                    <li><strong>×5 Table:</strong> Answers always end with 0 or 5</li>
+                    <li><strong>×9 Table:</strong> Use the finger trick! Hold up 10 fingers, fold down the finger for the number you're multiplying by 9</li>
+                    <li><strong>×10 Table:</strong> Just add a zero to the number</li>
+                    <li><strong>Commutative Property:</strong> Remember that 7×8 is the same as 8×7!</li>
+                </ul>
+            </section>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Math Whiz Flashcards • Based on proven multiplication teaching strategies • Have fun learning!</p>
+    </footer>
+
+    <script>
+        // Multiplication data with hints and stories
+        const multiplicationData = [
+            // Easy patterns (2s, 5s, 10s)
+            { problem: "2 × 3", answer: 6, table: 2, 
+              hint: "Double 3 is 6! The ×2 table is just doubling.", 
+              story: "Two triplets (3+3) walked into a bakery. Each triplet bought 2 cookies. They had 6 cookies total!" },
+            
+            { problem: "5 × 4", answer: 20, table: 5, 
+              hint: "Count by 5s: 5, 10, 15, 20!", 
+              story: "Five cats each caught 4 mice. That's 20 mice! But don't worry, they were pretend mice." },
+            
+            { problem: "10 × 7", answer: 70, table: 10, 
+              hint: "Just add a zero to 7 to get 70!", 
+              story: "Ten astronauts each ate 7 space ice creams. That's 70 space ice creams floating around the spaceship!" },
+            
+            // Mid-level tables (3s, 4s, 6s)
+            { problem: "3 × 8", answer: 24, table: 3, 
+              hint: "Skip count by 3s: 3, 6, 9, 12, 15, 18, 21, 24!", 
+              story: "Three octopuses went shopping. Each bought 8 hats. They needed 24 hats total for all their tentacles!" },
+            
+            { problem: "4 × 6", answer: 24, table: 4, 
+              hint: "Double the 2× fact: 2×6=12, double it to get 24!", 
+              story: "Four bees each visited 6 flowers. That's 24 flowers getting pollinated! What a busy day for bees." },
+            
+            { problem: "6 × 7", answer: 42, table: 6, 
+              hint: "Think of it as 3×7=21, then double it to get 42!", 
+              story: "Six dwarves each mined 7 diamonds. That's 42 diamonds! Snow White was very impressed." },
+            
+            // Tricky numbers (7s, 8s, 9s)
+            { problem: "7 × 8", answer: 56, table: 7, 
+              hint: "Remember '5, 6, 7, 8' → 56 is 7×8!", 
+              story: "Seven and Eight went fishing. Seven caught 5 fish, Eight caught 6. Together they caught 56 fish because 7×8=56!" },
+            
+            { problem: "9 × 6", answer: 54, table: 9, 
+              hint: "Use the finger trick! Hold up 10 fingers, fold down the 6th finger.", 
+              story: "Nine ladybugs each had 6 spots. That's 54 spots in total! They had a spot-counting contest." },
+            
+            { problem: "8 × 8", answer: 64, table: 8, 
+              hint: "8×8 fell on the floor, picked it up, it's 64!", 
+              story: "Eight spiders each spun 8 webs. That's 64 webs! The flies had to be very careful that day." },
+            
+            { problem: "7 × 7", answer: 49, table: 7, 
+              hint: "Seven times seven is like a football team, 49ers!", 
+              story: "Seven seahorses each had 7 babies. That's 49 baby seahorses holding tails!" },
+            
+            { problem: "9 × 9", answer: 81, table: 9, 
+              hint: "9×9=81, and 8+1=9! All 9s facts digits add up to 9.", 
+              story: "Nine cats each had 9 lives. That's 81 lives total! They felt very brave." },
+            
+            { problem: "6 × 8", answer: 48, table: 6, 
+              hint: "Think of it as 3×8=24, then double it to get 48!", 
+              story: "Six octopuses each played 8 musical instruments. That's 48 instruments! They started an underwater orchestra." },
+            
+            { problem: "4 × 9", answer: 36, table: 4, 
+              hint: "4×9=36, and 3+6=9! Notice the pattern?", 
+              story: "Four bakers each made 9 pies. That's 36 pies! The whole neighborhood smelled delicious." },
+            
+            { problem: "3 × 7", answer: 21, table: 3, 
+              hint: "Skip count by 3s: 3, 6, 9, 12, 15, 18, 21!", 
+              story: "Three weeks have 21 days. That's 21 days to learn your times tables!" },
+            
+            { problem: "12 × 5", answer: 60, table: 5, 
+              hint: "10×5=50, plus 2×5=10, so 50+10=60!", 
+              story: "Twelve fingers (including thumbs!) each tapped 5 times. That's 60 taps! Can you tap along?" }
+        ];
+
+        // DOM Elements
+        const flashcard = document.getElementById('flashcard');
+        const problemElement = document.getElementById('problem');
+        const answerInput = document.getElementById('answer-input');
+        const submitBtn = document.getElementById('submit-btn');
+        const flipBackBtn = document.getElementById('flip-back-btn');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const cardCounter = document.getElementById('card-counter');
+        const progressBar = document.getElementById('progress-bar');
+        const resultElement = document.getElementById('result');
+        const correctAnswerElement = document.getElementById('correct-answer');
+        const hintContent = document.getElementById('hint-content');
+        const storyContent = document.getElementById('story-content');
+        const hintText = document.getElementById('hint-text');
+        const tableButtons = document.querySelectorAll('.table-btn');
+        
+        // App state
+        let currentCardIndex = 0;
+        let selectedTable = 'all';
+        let filteredCards = [...multiplicationData];
+        let score = 0;
+        let totalAttempts = 0;
+        
+        // Initialize the app
+        function init() {
+            updateCard();
+            updateProgressBar();
+            setupEventListeners();
+        }
+        
+        // Set up event listeners
+        function setupEventListeners() {
+            submitBtn.addEventListener('click', checkAnswer);
+            flipBackBtn.addEventListener('click', flipToFront);
+            prevBtn.addEventListener('click', showPreviousCard);
+            nextBtn.addEventListener('click', showNextCard);
+            answerInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    checkAnswer();
+                }
+            });
+            
+            // Table selection buttons
+            tableButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Remove active class from all buttons
+                    tableButtons.forEach(b => b.classList.remove('active'));
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    // Filter cards based on selection
+                    selectedTable = this.getAttribute('data-table');
+                    filterCardsByTable();
+                });
+            });
+        }
+        
+        // Filter cards based on selected times table
+        function filterCardsByTable() {
+            if (selectedTable === 'all') {
+                filteredCards = [...multiplicationData];
+            } else {
+                filteredCards = multiplicationData.filter(card => card.table == selectedTable);
+            }
+            
+            // Reset to first card
+            currentCardIndex = 0;
+            updateCard();
+            updateProgressBar();
+        }
+        
+        // Update the current card display
+        function updateCard() {
+            const card = filteredCards[currentCardIndex];
+            problemElement.textContent = card.problem;
+            hintText.textContent = `Hint: ${card.hint.substring(0, 40)}...`;
+            cardCounter.textContent = `Card ${currentCardIndex + 1} of ${filteredCards.length}`;
+            
+            // Reset input and ensure card is on front side
+            answerInput.value = '';
+            flashcard.classList.remove('flipped');
+            answerInput.focus();
+            
+            // Update navigation buttons
+            prevBtn.disabled = currentCardIndex === 0;
+            nextBtn.disabled = currentCardIndex === filteredCards.length - 1;
+        }
+        
+        // Check the user's answer
+        function checkAnswer() {
+            const userAnswer = parseInt(answerInput.value);
+            const correctAnswer = filteredCards[currentCardIndex].answer;
+            totalAttempts++;
+            
+            // Update result display
+            if (userAnswer === correctAnswer) {
+                resultElement.innerHTML = 'Correct! <i class="fas fa-check-circle"></i>';
+                resultElement.className = 'result correct';
+                score++;
+            } else {
+                resultElement.innerHTML = 'Try Again! <i class="fas fa-times-circle"></i>';
+                resultElement.className = 'result incorrect';
+            }
+            
+            // Update answer display
+            correctAnswerElement.textContent = `${filteredCards[currentCardIndex].problem} = ${correctAnswer}`;
+            
+            // Update hint and story
+            hintContent.textContent = filteredCards[currentCardIndex].hint;
+            storyContent.textContent = filteredCards[currentCardIndex].story;
+            
+            // Flip the card
+            flashcard.classList.add('flipped');
+        }
+        
+        // Flip card back to front
+        function flipToFront() {
+            flashcard.classList.remove('flipped');
+            
+            // If we're at the last card, show a completion message
+            if (currentCardIndex === filteredCards.length - 1) {
+                setTimeout(() => {
+                    if (score === totalAttempts) {
+                        alert(`Perfect! You got all ${score} correct! 🎉`);
+                    } else {
+                        alert(`Great job! You got ${score} out of ${totalAttempts} correct!`);
+                    }
+                    // Reset score for next round
+                    score = 0;
+                    totalAttempts = 0;
+                }, 300);
+            }
+            
+            // Move to next card automatically if not the last
+            if (currentCardIndex < filteredCards.length - 1) {
+                setTimeout(() => {
+                    showNextCard();
+                }, 300);
+            }
+        }
+        
+        // Show previous card
+        function showPreviousCard() {
+            if (currentCardIndex > 0) {
+                currentCardIndex--;
+                updateCard();
+                updateProgressBar();
+            }
+        }
+        
+        // Show next card
+        function showNextCard() {
+            if (currentCardIndex < filteredCards.length - 1) {
+                currentCardIndex++;
+                updateCard();
+                updateProgressBar();
+            }
+        }
+        
+        // Update progress bar
+        function updateProgressBar() {
+            const progress = ((currentCardIndex + 1) / filteredCards.length) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+        
+        // Initialize the app when page loads
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
