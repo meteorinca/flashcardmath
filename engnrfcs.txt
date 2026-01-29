@@ -6,7 +6,7 @@ Write a safe SQL query with a parameter
 SELECT * FROM users WHERE id = ?;
 ---
 [tag=sql,security]
-
+---
 #deck: Physics — Core Concepts
 ---
 Newton's First Law of Motion
@@ -30,8 +30,3 @@ The derivative of a constant
 The derivative of a constant is 0.
 ---
 [tag=math,calculus,derivatives]
-
----
-443
----
-
