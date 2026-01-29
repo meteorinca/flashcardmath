@@ -1,0 +1,13 @@
+#deck: Example — Quick Wins
+
+HTTP status 404 :: Not found [web]
+What does JSON stand for? :: JavaScript Object Notation [web, basics]
+
+#deck: Example — Multiline
+---
+Write a safe SQL query with a parameter
+---
+---
+SELECT * FROM users WHERE id = ?;
+---
+[tag=sql,security]
