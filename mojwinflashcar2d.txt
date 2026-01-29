@@ -1,0 +1,62 @@
+Here is a substantial list focused on engineering concepts, with some cross-over into physics and computer science.
+
+**Civil & Structural Engineering**
+Allowable Stress Design (ASD) :: A design method where members are sized so that the calculated stress under service loads does not exceed an allowable stress. [civil-engineering, structural-design]
+Slump Test measures :: The workability and consistency of fresh concrete. [civil-engineering, construction, materials]
+Purpose of a shear wall :: To resist lateral forces (wind, seismic) and transfer them to the foundation. [civil-engineering, structural, seismic]
+Water-Cement Ratio :: The ratio by weight of water to cement in a concrete mix; the single most important factor for strength and durability. [civil-engineering, materials]
+The 5 major types of civil engineering :: Structural, Geotechnical, Environmental, Water Resources, Transportation. [civil-engineering]
+The bearing capacity of soil is determined by :: Its cohesion, internal friction angle, unit weight, and footing dimensions. [civil-engineering, geotechnical]
+PERT Chart purpose :: Program Evaluation and Review Technique - used to schedule, organize, and coordinate tasks within a project. [engineering, project-management]
+
+**Mechanical & Aerospace Engineering**
+The First Law of Thermodynamics for a closed system :: ΔU = Q - W (Change in internal energy = Heat added to system - Work done by system). [mechanical-engineering, thermodynamics]
+Carnot Efficiency formula :: η = 1 - (T_cold / T_hot), where T is in Kelvin. Represents the maximum possible efficiency of a heat engine. [mechanical-engineering, thermodynamics]
+A spur gear transmits power between :: Parallel shafts. [mechanical-engineering, design, machine-elements]
+Bernoulli's Principle :: In a flowing fluid, an increase in speed occurs simultaneously with a decrease in pressure or potential energy. [mechanical-engineering, aerospace, fluid-dynamics]
+Finite Element Analysis (FEA) :: A numerical method for solving complex engineering problems by breaking them into small, simple elements. [mechanical-engineering, simulation, analysis]
+Yield Strength vs. Ultimate Tensile Strength :: Yield strength is the stress at which material begins to deform plastically. Ultimate strength is the maximum stress it can withstand. [mechanical-engineering, materials, properties]
+NACA airfoil numbering system :: The "NACA 2412" airfoil: 2% camber at 40% chord, with a 12% thickness-to-chord ratio. [aerospace-engineering, aerodynamics]
+Reynolds Number significance :: A dimensionless quantity predicting flow patterns (laminar or turbulent) in a fluid. [mechanical-engineering, fluid-mechanics]
+
+**Electrical & Electronics Engineering**
+Kirchhoff's Voltage Law (KVL) :: The sum of all electrical potential differences around any closed network is zero. [electrical-engineering, circuits, laws]
+Function of a transistor :: To amplify or switch electronic signals and electrical power. [electrical-engineering, electronics, components]
+Thevenin's Theorem :: Any linear electrical network can be replaced by an equivalent circuit with a single voltage source and series resistance. [electrical-engineering, circuits, analysis]
+Purpose of a rectifier circuit :: To convert alternating current (AC) to direct current (DC). [electrical-engineering, electronics, power]
+Capacitor impedance formula (AC) :: Z_c = 1 / (jωC) where ω is angular frequency. Capacitors block DC and pass AC. [electrical-engineering, electronics]
+3-Phase Power advantage over Single-Phase :: More power can be delivered with less conductor material; provides a constant power transfer. [electrical-engineering, power-systems]
+Peak vs. RMS voltage for a sine wave :: V_peak = √2 * V_RMS. North American wall voltage is 120V RMS, ~170V peak. [electrical-engineering, basics]
+
+**Chemical & Materials Engineering**
+The triple point of water :: 0.01°C (273.16 K) and 611.657 Pa. The unique condition where solid, liquid, and vapor coexist in equilibrium. [chemical-engineering, thermodynamics, physics]
+McCabe-Thiele Method is used for :: Designing and analyzing binary distillation columns. [chemical-engineering, processes, separation]
+Hazard and Operability Study (HAZOP) :: A structured and systematic examination of a process to identify and evaluate problems. [chemical-engineering, safety]
+Brinell Hardness Test :: Measures hardness by pressing a hard steel or carbide ball into a material and measuring the indentation diameter. [materials-engineering, testing]
+Phase Diagram shows :: The equilibrium phases of a substance at different temperatures, pressures, and compositions. [materials-engineering, chemical]
+A catalyst's primary function :: To increase the rate of a chemical reaction without being consumed in the process. [chemical-engineering, chemistry]
+
+**Industrial & Systems Engineering**
+The 8 Types of Waste in Lean (TIMWOODS) :: Transport, Inventory, Motion, Waiting, Overproduction, Overprocessing, Defects, Skills (unused). [industrial-engineering, lean, manufacturing]
+Kanban System purpose :: An inventory control system to manage the supply chain and implement Just-In-Time (JIT) manufacturing. [industrial-engineering, operations]
+Poka-Yoke :: A Japanese term for "mistake-proofing"; designing processes to prevent errors. [industrial-engineering, quality, lean]
+Queuing Theory studies :: The formation and behavior of waiting lines (queues) to predict and optimize system performance. [industrial-engineering, systems, operations-research]
+A Gantt Chart visually represents :: A project schedule, showing tasks against time. [industrial-engineering, project-management]
+
+**Software & Computer Engineering**
+DRY Principle :: Don't Repeat Yourself - every piece of knowledge must have a single, unambiguous representation within a system. [software-engineering, principles]
+The Agile Manifesto values :: Individuals and interactions over processes and tools; Working software over comprehensive documentation; Customer collaboration over contract negotiation; Responding to change over following a plan. [software-engineering, methodology]
+MVC Architecture :: Model-View-Controller - separates an application into three interconnected components to decouple data, UI, and control logic. [software-engineering, design-patterns, web]
+I²C Communication Protocol :: A synchronous, multi-master, multi-slave, packet-switched, single-ended, serial computer bus. [computer-engineering, embedded, protocols]
+Cache Memory purpose :: A small, fast memory layer that stores frequently accessed data to reduce average access time to main memory. [computer-engineering, architecture]
+Hashing in data structures :: A technique to map data of arbitrary size to fixed-size values (hash codes) for fast retrieval. [computer-engineering, data-structures, algorithms]
+
+**General & Core Engineering**
+Factor of Safety formula :: FoS = (Ultimate Strength) / (Allowable Stress) or = (Failure Load) / (Intended Load). [engineering, design, safety]
+The Engineering Design Process steps :: 1. Define Problem 2. Research 3. Ideate 4. Prototype 5. Test 6. Iterate 7. Communicate. [engineering, process]
+Free Body Diagram (FBD) :: A sketch showing all external forces acting on a body, essential for static and dynamic analysis. [engineering, mechanics, fundamentals]
+Tolerance on a dimension :: The permissible limit of variation in a physical dimension. [engineering, manufacturing, gd&t]
+PLC stands for :: Programmable Logic Controller - an industrial digital computer for automating electromechanical processes. [engineering, controls, automation]
+A PID controller adjusts an output based on :: Proportional, Integral, and Derivative terms of the error between a desired setpoint and a measured process variable. [engineering, controls, feedback]
+Failure Mode and Effects Analysis (FMEA) :: A step-by-step approach for identifying all possible failures in a design, process, or product. [engineering, reliability, quality]
+The Right-Hand Rule (for moments) :: Point fingers in direction of force, curl toward direction of rotation; thumb points in direction of the moment vector. [engineering, physics, mechanics]
