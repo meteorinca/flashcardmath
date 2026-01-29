@@ -1,4 +1,3 @@
-Here is a substantial list focused on engineering concepts, with some cross-over into physics and computer science.
 
 **Civil & Structural Engineering**
 Allowable Stress Design (ASD) :: A design method where members are sized so that the calculated stress under service loads does not exceed an allowable stress. [civil-engineering, structural-design]
@@ -59,4 +58,5 @@ Tolerance on a dimension :: The permissible limit of variation in a physical dim
 PLC stands for :: Programmable Logic Controller - an industrial digital computer for automating electromechanical processes. [engineering, controls, automation]
 A PID controller adjusts an output based on :: Proportional, Integral, and Derivative terms of the error between a desired setpoint and a measured process variable. [engineering, controls, feedback]
 Failure Mode and Effects Analysis (FMEA) :: A step-by-step approach for identifying all possible failures in a design, process, or product. [engineering, reliability, quality]
+
 The Right-Hand Rule (for moments) :: Point fingers in direction of force, curl toward direction of rotation; thumb points in direction of the moment vector. [engineering, physics, mechanics]
