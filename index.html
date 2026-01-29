@@ -1,1 +1,1656 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>FlashDeck — Local-File Flashcards (Offline)</title>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --panel:#121a33;
+      --panel2:#0f1730;
+      --text:#e7ecff;
+      --muted:#aab3d6;
+      --faint:#6f79a7;
+      --brand:#7c5cff;
+      --brand2:#36d1ff;
+      --ok:#21d07a;
+      --warn:#ffcc66;
+      --bad:#ff5c7a;
+      --border: rgba(255,255,255,0.10);
+      --shadow: 0 12px 40px rgba(0,0,0,0.35);
+      --radius: 16px;
+      --radius2: 22px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: var(--sans);
+      color: var(--text);
+      background:
+        radial-gradient(1200px 800px at 15% 10%, rgba(124,92,255,0.35), transparent 60%),
+        radial-gradient(900px 600px at 80% 15%, rgba(54,209,255,0.22), transparent 55%),
+        radial-gradient(900px 700px at 70% 85%, rgba(33,208,122,0.10), transparent 55%),
+        linear-gradient(180deg, #070a16, var(--bg));
+      overflow-x:hidden;
+    }
+    a{color:inherit}
+    .wrap{max-width:1120px; margin:0 auto; padding:24px 18px 64px}
+    header{
+      display:flex; align-items:center; justify-content:space-between; gap:16px;
+      position:sticky; top:0; z-index:50;
+      padding:14px 18px;
+      margin:0 -18px 18px;
+      background: rgba(7,10,22,0.72);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .brand{display:flex; align-items:center; gap:12px; min-width: 250px}
+    .logo{
+      width:38px; height:38px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--brand), var(--brand2));
+      box-shadow: 0 12px 30px rgba(124,92,255,0.25);
+      position:relative;
+    }
+    .logo:after{
+      content:""; position:absolute; inset:10px;
+      border-radius:10px;
+      background: rgba(255,255,255,0.12);
+      transform: rotate(10deg);
+    }
+    h1{font-size:16px; margin:0; letter-spacing:0.3px}
+    .sub{color:var(--muted); font-size:12px; margin-top:2px}
 
+    .top-actions{display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end}
+    button, .btn{
+      appearance:none; border: 1px solid var(--border);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      padding:10px 12px;
+      border-radius: 12px;
+      font-weight:600;
+      cursor:pointer;
+      transition: transform 0.08s ease, background 0.15s ease, border-color 0.15s ease;
+      user-select:none;
+    }
+    button:hover,.btn:hover{background: rgba(255,255,255,0.10); border-color: rgba(255,255,255,0.16)}
+    button:active,.btn:active{transform: translateY(1px)}
+    button.primary{
+      border-color: rgba(124,92,255,0.45);
+      background: linear-gradient(135deg, rgba(124,92,255,0.35), rgba(54,209,255,0.18));
+    }
+    button.primary:hover{background: linear-gradient(135deg, rgba(124,92,255,0.45), rgba(54,209,255,0.24))}
+    button.danger{border-color: rgba(255,92,122,0.45); background: rgba(255,92,122,0.14)}
+    button.ok{border-color: rgba(33,208,122,0.5); background: rgba(33,208,122,0.14)}
+    button.warn{border-color: rgba(255,204,102,0.5); background: rgba(255,204,102,0.12)}
+    button.ghost{background: transparent}
+
+    .grid{display:grid; grid-template-columns: 380px 1fr; gap:16px; align-items:start}
+    @media (max-width: 980px){
+      .grid{grid-template-columns: 1fr}
+      header{position:relative}
+      .brand{min-width:auto}
+    }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.04));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card .hd{
+      padding:14px 14px 10px;
+      border-bottom: 1px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      background: rgba(0,0,0,0.10);
+    }
+    .card .hd h2{font-size:13px; margin:0; color: var(--muted); letter-spacing:0.6px; text-transform:uppercase}
+    .card .bd{padding:14px}
+
+    .drop{
+      border: 1.5px dashed rgba(255,255,255,0.22);
+      background: rgba(0,0,0,0.14);
+      border-radius: 14px;
+      padding:14px;
+    }
+    .drop.dragover{border-color: rgba(124,92,255,0.55); background: rgba(124,92,255,0.10)}
+    .drop h3{margin:0 0 6px; font-size:14px}
+    .drop p{margin:0; color: var(--muted); font-size:12px; line-height:1.45}
+    .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:10px}
+    input[type=file]{display:none}
+
+    .list{display:flex; flex-direction:column; gap:10px}
+    .deck{
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.14);
+      border-radius: 14px;
+      padding:12px;
+      cursor:pointer;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+    .deck:hover{background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.16)}
+    .deck.active{border-color: rgba(124,92,255,0.5); background: rgba(124,92,255,0.10)}
+    .deck .name{font-weight:800; font-size:14px}
+    .deck .meta{display:flex; gap:10px; margin-top:6px; color: var(--muted); font-size:12px; flex-wrap:wrap}
+    .pill{display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:999px; border:1px solid var(--border); background: rgba(255,255,255,0.06)}
+
+    .muted{color:var(--muted)}
+    .tiny{font-size:12px; color: var(--muted); line-height:1.45}
+    .mono{font-family: var(--mono)}
+    .sep{height:1px; background: var(--border); margin:12px 0}
+
+    .study{
+      min-height: 520px;
+      display:flex; flex-direction:column; gap:12px;
+    }
+    .study-top{display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap}
+    .study-top .left{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    .study-top .right{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+
+    .bigCard{
+      flex:1;
+      display:flex;
+      align-items:stretch;
+      justify-content:center;
+    }
+    .flash{
+      width:100%;
+      border-radius: var(--radius2);
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04));
+      box-shadow: 0 18px 60px rgba(0,0,0,0.45);
+      padding:16px;
+      position:relative;
+      cursor:pointer;
+      outline:none;
+    }
+    .flash:focus-visible{box-shadow: 0 0 0 3px rgba(124,92,255,0.45), 0 18px 60px rgba(0,0,0,0.45)}
+    .flash .label{color: var(--muted); font-size:12px; letter-spacing:0.4px; text-transform:uppercase; margin-bottom:10px}
+    .flash .content{
+      font-size: 20px;
+      line-height: 1.35;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .flash .content.small{font-size:18px}
+    .flash .foot{
+      position:absolute; left:14px; right:14px; bottom:12px;
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      color: var(--faint);
+      font-size:12px;
+    }
+
+    .gradeRow{display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:center}
+    .gradeRow button{min-width:110px}
+
+    .kbd{font-family: var(--mono); font-size:11px; padding:2px 6px; border-radius:8px; border:1px solid var(--border); background: rgba(0,0,0,0.20); color: var(--muted)}
+
+    .input, textarea, select{
+      width:100%;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.18);
+      color: var(--text);
+      padding:10px 12px;
+      outline:none;
+    }
+    textarea{min-height: 110px; resize: vertical; font-family: var(--mono); font-size: 12px; line-height: 1.5}
+    .two{display:grid; grid-template-columns: 1fr 1fr; gap:10px}
+    @media (max-width: 560px){ .two{grid-template-columns:1fr} }
+
+    .modalWrap{position:fixed; inset:0; z-index:100; display:none; align-items:center; justify-content:center; padding:18px}
+    .modalWrap.open{display:flex}
+    .modal{
+      width:min(900px, 100%);
+      max-height: min(82vh, 900px);
+      overflow:auto;
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: rgba(9,12,26,0.92);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 30px 90px rgba(0,0,0,0.55);
+    }
+    .modal .hd{position:sticky; top:0; z-index:1; background: rgba(9,12,26,0.92)}
+
+    .table{
+      width:100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .table th,.table td{border-bottom: 1px solid var(--border); padding:10px 10px; vertical-align:top}
+    .table th{color: var(--muted); text-align:left; font-weight:700; letter-spacing:0.3px}
+    .tag{display:inline-block; padding:2px 8px; border-radius:999px; background: rgba(124,92,255,0.18); border:1px solid rgba(124,92,255,0.35); color: #e9e4ff; margin-right:6px; margin-top:4px}
+
+    .toastWrap{position: fixed; right: 14px; bottom: 14px; z-index: 200; display:flex; flex-direction:column; gap:10px; max-width: 360px}
+    .toast{border-radius: 14px; border:1px solid var(--border); background: rgba(0,0,0,0.55); backdrop-filter: blur(10px); padding:10px 12px; box-shadow: 0 18px 60px rgba(0,0,0,0.45)}
+    .toast .t{font-weight:800; font-size: 12px; margin:0}
+    .toast .b{margin:4px 0 0; font-size: 12px; color: var(--muted); line-height:1.35}
+
+    .srOnly{position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo" aria-hidden="true"></div>
+      <div>
+        <h1>FlashDeck</h1>
+        <div class="sub">Offline flashcards from local <span class="mono">.txt</span> files • spaced repetition built-in</div>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button class="primary" id="btnImport">Import .txt files</button>
+      <button id="btnHelp">Format / Help</button>
+      <button id="btnManage">Manage cards</button>
+      <button id="btnBackup">Backup</button>
+    </div>
+    <input id="fileInput" type="file" accept="text/plain" multiple />
+  </header>
+
+  <div class="wrap">
+    <div class="grid">
+      <section class="card">
+        <div class="hd">
+          <h2>Your decks</h2>
+          <button class="ghost" id="btnNewDeck" title="Create a deck without importing">New</button>
+        </div>
+        <div class="bd">
+          <div class="drop" id="drop">
+            <h3>Drop deck files here</h3>
+            <p>
+              Or click <b>Import .txt files</b>. Your decks + progress are stored in your browser (localStorage) — no server.
+            </p>
+            <div class="row">
+              <span class="tiny">Tip: Put <span class="mono">index.html</span> + your <span class="mono">.txt</span> decks in the same folder for easy importing.</span>
+            </div>
+          </div>
+
+          <div class="sep"></div>
+
+          <div class="two">
+            <div>
+              <label class="tiny" for="filter">Filter</label>
+              <input class="input" id="filter" placeholder="Search decks / tags…" />
+            </div>
+            <div>
+              <label class="tiny" for="studyMode">Study</label>
+              <select id="studyMode">
+                <option value="due">Due first (recommended)</option>
+                <option value="new">New only</option>
+                <option value="all">All (mixed)</option>
+                <option value="cram">Cram (no scheduling)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="sep"></div>
+
+          <div class="list" id="deckList"></div>
+
+          <div class="sep"></div>
+          <div class="tiny">
+            Keyboard: <span class="kbd">Space</span> flip • <span class="kbd">1</span>/<span class="kbd">2</span>/<span class="kbd">3</span>/<span class="kbd">4</span> grade • <span class="kbd">N</span> next • <span class="kbd">R</span> reset card
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="hd">
+          <h2>Study</h2>
+          <div class="row">
+            <span class="pill" id="pillDeck">No deck selected</span>
+            <span class="pill" id="pillQueue">Queue: —</span>
+          </div>
+        </div>
+        <div class="bd">
+          <div class="study">
+            <div class="study-top">
+              <div class="left">
+                <button class="ok" id="btnStart">Start</button>
+                <button id="btnShuffle">Shuffle</button>
+                <button id="btnResetCard" class="warn">Reset card</button>
+              </div>
+              <div class="right">
+                <span class="pill" id="pillStats">—</span>
+                <button id="btnPeek">Peek</button>
+              </div>
+            </div>
+
+            <div class="bigCard">
+              <div class="flash" id="flash" tabindex="0" role="button" aria-label="Flashcard. Click to flip.">
+                <div class="label" id="flashLabel">Select a deck to begin</div>
+                <div class="content" id="flashContent">Import a deck file (or create one) and press Start.</div>
+                <div class="foot">
+                  <div id="flashFootLeft">—</div>
+                  <div id="flashFootRight">—</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="gradeRow" id="gradeRow" style="display:none">
+              <button class="danger" data-grade="0">Again <span class="kbd">1</span></button>
+              <button class="warn" data-grade="1">Hard <span class="kbd">2</span></button>
+              <button class="primary" data-grade="2">Good <span class="kbd">3</span></button>
+              <button class="ok" data-grade="3">Easy <span class="kbd">4</span></button>
+            </div>
+
+            <div class="tiny" id="studyHint">
+              Click the card to flip. Grade honestly — it’s how spaced repetition helps.
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Help Modal -->
+  <div class="modalWrap" id="helpModal" aria-hidden="true">
+    <div class="modal card">
+      <div class="hd">
+        <h2>Deck file format</h2>
+        <div class="row">
+          <button id="btnCloseHelp">Close</button>
+        </div>
+      </div>
+      <div class="bd">
+        <p class="tiny">
+          FlashDeck reads plain text files you select (or drag/drop). A single file can contain one or more decks.
+        </p>
+        <div class="sep"></div>
+        <div class="tiny">
+          <div><b>Rules</b></div>
+          <ul>
+            <li>Comments start with <span class="mono">//</span> or <span class="mono">#</span> (except <span class="mono">#deck</span> lines).</li>
+            <li>Start a deck with: <span class="mono">#deck: Deck Name</span></li>
+            <li>Cards are: <span class="mono">Front :: Back</span></li>
+            <li>Optional tags: <span class="mono">Front :: Back [tag1, tag2]</span></li>
+            <li>Multiline cards use <span class="mono">---</span> blocks:
+              <div class="mono" style="margin-top:6px; white-space:pre-wrap; background:rgba(0,0,0,0.18); border:1px solid var(--border); padding:10px; border-radius:12px;">
+#deck: Spanish
+---
+Q: ¿Cómo estás?
+---
+---
+A: I'm good, thanks.
+---
+[tag=conversation]
+              </div>
+              In that form: first <span class="mono">---</span> block is front, second is back. Optional tag lines can appear after (e.g. <span class="mono">[tag=foo,bar]</span>).
+            </li>
+          </ul>
+          <div class="sep"></div>
+          <div><b>Tip</b>: Keep each deck in its own file for sanity (e.g. <span class="mono">spanish.txt</span>, <span class="mono">aws.txt</span>).</div>
+        </div>
+
+        <div class="sep"></div>
+        <div class="two">
+          <div>
+            <div class="tiny"><b>Example file</b></div>
+            <textarea readonly class="mono">#deck: Example — Quick Wins
+
+HTTP status 404 :: Not found [web]
+
+What does JSON stand for? :: JavaScript Object Notation [web, basics]
+
+#deck: Example — Multiline
+---
+Write a safe SQL query with a parameter
+---
+---
+SELECT * FROM users WHERE id = ?;
+---
+[tag=sql,security]
+</textarea>
+          </div>
+          <div>
+            <div class="tiny"><b>How progress works</b></div>
+            <p class="tiny">
+              This app uses a lightweight SM-2 style scheduler (like Anki-ish).
+              Each card stores: repetitions, interval, easiness, and next due time.
+              Your progress stays on your device (localStorage).
+            </p>
+            <div class="sep"></div>
+            <div class="tiny"><b>Privacy</b></div>
+            <p class="tiny">No uploads. No analytics. Everything is local unless you export a backup file.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Manage Modal -->
+  <div class="modalWrap" id="manageModal" aria-hidden="true">
+    <div class="modal card">
+      <div class="hd">
+        <h2>Manage</h2>
+        <div class="row">
+          <button id="btnCloseManage">Close</button>
+        </div>
+      </div>
+      <div class="bd">
+        <div class="two">
+          <div>
+            <div class="tiny"><b>Deck</b></div>
+            <select id="manageDeck"></select>
+            <div class="sep"></div>
+            <div class="tiny"><b>Search cards</b></div>
+            <input class="input" id="cardSearch" placeholder="Search front/back/tags…" />
+            <div class="sep"></div>
+            <div class="row">
+              <button id="btnAddCard" class="primary">Add card</button>
+              <button id="btnExportDeck">Export deck</button>
+              <button id="btnDeleteDeck" class="danger">Delete deck</button>
+            </div>
+            <div class="sep"></div>
+            <div class="tiny">
+              Exported decks include your scheduling metadata so you can move devices.
+            </div>
+          </div>
+          <div>
+            <div class="tiny"><b>Cards</b></div>
+            <div style="max-height:52vh; overflow:auto; border:1px solid var(--border); border-radius:14px">
+              <table class="table" id="cardTable">
+                <thead>
+                  <tr>
+                    <th style="width:44%">Front</th>
+                    <th style="width:44%">Back</th>
+                    <th style="width:12%">Actions</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="sep"></div>
+
+        <div class="two">
+          <div>
+            <div class="tiny"><b>Edit card</b></div>
+            <input class="input" id="editId" placeholder="(auto)" disabled />
+            <div style="height:10px"></div>
+            <textarea id="editFront" placeholder="Front"></textarea>
+            <div style="height:10px"></div>
+            <textarea id="editBack" placeholder="Back"></textarea>
+            <div style="height:10px"></div>
+            <input class="input" id="editTags" placeholder="Tags (comma-separated)" />
+            <div class="row" style="margin-top:10px">
+              <button id="btnSaveCard" class="ok">Save</button>
+              <button id="btnCancelEdit">Cancel</button>
+              <button id="btnDeleteCard" class="danger">Delete card</button>
+              <button id="btnResetThisCard" class="warn">Reset scheduling</button>
+            </div>
+          </div>
+          <div>
+            <div class="tiny"><b>Scheduler preview</b></div>
+            <div class="drop" style="margin-top:6px">
+              <div class="tiny" id="schedPreview">Select a card to see its scheduling state.</div>
+            </div>
+            <div class="sep"></div>
+            <div class="tiny"><b>Quick create deck</b></div>
+            <input class="input" id="newDeckName" placeholder="Deck name…" />
+            <div class="row" style="margin-top:10px">
+              <button id="btnCreateDeck" class="primary">Create deck</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Backup Modal -->
+  <div class="modalWrap" id="backupModal" aria-hidden="true">
+    <div class="modal card">
+      <div class="hd">
+        <h2>Backup / Restore</h2>
+        <div class="row">
+          <button id="btnCloseBackup">Close</button>
+        </div>
+      </div>
+      <div class="bd">
+        <div class="two">
+          <div>
+            <div class="tiny"><b>Export all data</b></div>
+            <p class="tiny">Downloads a JSON file containing all decks + progress.</p>
+            <div class="row">
+              <button id="btnExportAll" class="primary">Download backup.json</button>
+              <button id="btnWipeAll" class="danger">Wipe local data</button>
+            </div>
+          </div>
+          <div>
+            <div class="tiny"><b>Restore</b></div>
+            <p class="tiny">Import a backup JSON file created by this app.</p>
+            <div class="row">
+              <button id="btnImportBackup">Import backup.json</button>
+              <input id="backupInput" type="file" accept="application/json" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toastWrap" id="toasts" aria-live="polite" aria-atomic="true"></div>
+
+  <script>
+  (function(){
+    "use strict";
+
+    // -------------------------
+    // Storage
+    // -------------------------
+    const STORE_KEY = "flashdeck.v1";
+    const now = () => Date.now();
+
+    /** @returns {{decks: Record<string, Deck>, selectedDeckId: string|null, version:number}} */
+    function loadStore(){
+      try{
+        const raw = localStorage.getItem(STORE_KEY);
+        if(!raw) return { version: 1, selectedDeckId: null, decks: {} };
+        const data = JSON.parse(raw);
+        if(!data || typeof data !== 'object') throw new Error('bad store');
+        data.version ??= 1;
+        data.selectedDeckId ??= null;
+        data.decks ??= {};
+        // basic migration safety
+        for(const [id, d] of Object.entries(data.decks)){
+          d.id ??= id;
+          d.name ??= "Untitled";
+          d.createdAt ??= now();
+          d.updatedAt ??= now();
+          d.cards ??= [];
+        }
+        return data;
+      }catch(e){
+        console.warn(e);
+        return { version: 1, selectedDeckId: null, decks: {} };
+      }
+    }
+
+    function saveStore(){
+      state.store.version = 1;
+      localStorage.setItem(STORE_KEY, JSON.stringify(state.store));
+    }
+
+    function uid(prefix="id"){
+      return prefix + "_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
+    }
+
+    // -------------------------
+    // Types (informal)
+    // Deck: {id,name,createdAt,updatedAt,sourceFiles?:string[], cards: Card[]}
+    // Card: {id,front,back,tags:string[], createdAt, updatedAt, sched: Sched}
+    // Sched: {rep:number, intervalDays:number, ease:number, dueAt:number, lapses:number, lastGrade:number|null, lastReviewedAt:number|null}
+    // -------------------------
+
+    const DEFAULT_SCHED = () => ({
+      rep: 0,
+      intervalDays: 0,
+      ease: 2.5,
+      dueAt: now(),
+      lapses: 0,
+      lastGrade: null,
+      lastReviewedAt: null,
+    });
+
+    // -------------------------
+    // Toasts
+    // -------------------------
+    function toast(title, body, ms=3200){
+      const wrap = document.getElementById('toasts');
+      const el = document.createElement('div');
+      el.className = 'toast';
+      el.innerHTML = `<p class="t"></p><p class="b"></p>`;
+      el.querySelector('.t').textContent = title;
+      el.querySelector('.b').textContent = body || "";
+      wrap.appendChild(el);
+      setTimeout(()=>{
+        el.style.opacity = '0';
+        el.style.transition = 'opacity 250ms ease';
+        setTimeout(()=> el.remove(), 300);
+      }, ms);
+    }
+
+    // -------------------------
+    // Parsing deck files
+    // -------------------------
+    function normalizeNewlines(s){
+      return s.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+    }
+
+    function parseTagsSuffix(line){
+      // Supports: ... [tag1, tag2]
+      const m = line.match(/\s\[([^\]]+)\]\s*$/);
+      if(!m) return { text: line, tags: [] };
+      const tags = m[1].split(',').map(t=>t.trim()).filter(Boolean);
+      const text = line.slice(0, m.index).trimEnd();
+      return { text, tags };
+    }
+
+    function parseTagLine(line){
+      // [tag=foo,bar] or [tags=foo, bar]
+      const m = line.trim().match(/^\[(tags?|tag)\s*=\s*([^\]]+)\]$/i);
+      if(!m) return null;
+      return m[2].split(',').map(t=>t.trim()).filter(Boolean);
+    }
+
+    /**
+     * Parse one or more decks from a text file.
+     * Format:
+     *   #deck: Name
+     *   Front :: Back [optional,tags]
+     * Or multiline blocks:
+     *   ---\n(front)\n---\n---\n(back)\n---\n[tag=...]
+     */
+    function parseDeckText(text, sourceName="(file)"){
+      const lines = normalizeNewlines(text).split("\n");
+      /** @type {Array<{name:string, cards:Array<{front:string,back:string,tags:string[]}>}>} */
+      const decks = [];
+      let current = null;
+
+      let i = 0;
+      while(i < lines.length){
+        let line = lines[i];
+        const trimmed = line.trim();
+
+        // skip blank lines
+        if(trimmed === ""){ i++; continue; }
+
+        // deck header
+        const dm = trimmed.match(/^#\s*deck\s*:\s*(.+)$/i);
+        if(dm){
+          current = { name: dm[1].trim(), cards: [] };
+          decks.push(current);
+          i++; continue;
+        }
+
+        // comment lines (allow # comments but not #deck)
+        if(trimmed.startsWith("//") || (trimmed.startsWith("#") && !/^#\s*deck\s*:/i.test(trimmed))){
+          i++; continue;
+        }
+
+        // if no deck declared, create default
+        if(!current){
+          current = { name: `Imported (${sourceName})`, cards: [] };
+          decks.push(current);
+        }
+
+        // multiline card
+        if(trimmed === "---"){
+          const front = readBlock(lines, i);
+          i = front.nextIndex;
+          // expect separator --- then --- (we accept any whitespace lines between)
+          // After the first block, we expect another --- to start the back block
+          // Example:
+          // --- front ---
+          // ---
+          // --- back ---
+          // Optional tag line(s)
+          while(i < lines.length && lines[i].trim() === ""){ i++; }
+          if(i >= lines.length || lines[i].trim() !== "---"){
+            throw new Error("Malformed multiline card: missing second --- start");
+          }
+          const back = readBlock(lines, i);
+          i = back.nextIndex;
+
+          // optional tag lines immediately after
+          let tags = [];
+          while(i < lines.length){
+            const t = lines[i].trim();
+            if(t === "" || t.startsWith("//") || (t.startsWith("#") && !/^#\s*deck\s*:/i.test(t))){ i++; continue; }
+            const parsed = parseTagLine(t);
+            if(parsed){ tags = tags.concat(parsed); i++; continue; }
+            break;
+          }
+
+          current.cards.push({ front: front.text.trim(), back: back.text.trim(), tags: uniq(tags) });
+          continue;
+        }
+
+        // single-line card: Front :: Back
+        const parts = line.split("::");
+        if(parts.length >= 2){
+          const left = parts.shift();
+          const right = parts.join("::");
+          const { text: backText, tags } = parseTagsSuffix(right.trim());
+          const frontText = (left ?? "").trim();
+          if(frontText && backText){
+            current.cards.push({ front: frontText, back: backText, tags: uniq(tags) });
+          }
+          i++; continue;
+        }
+
+        // otherwise ignore unknown line (but don’t fail hard)
+        i++;
+      }
+
+      // remove empty decks
+      return decks.filter(d => d.cards.length > 0);
+    }
+
+    function readBlock(lines, startIndex){
+      // lines[startIndex] must be ---
+      let i = startIndex;
+      if(lines[i].trim() !== "---") throw new Error("readBlock called incorrectly");
+      i++;
+      const buf = [];
+      while(i < lines.length){
+        if(lines[i].trim() === "---"){
+          i++;
+          break;
+        }
+        buf.push(lines[i]);
+        i++;
+      }
+      return { text: buf.join("\n"), nextIndex: i };
+    }
+
+    function uniq(arr){
+      const s = new Set();
+      for(const x of arr){
+        const t = (x||"").trim();
+        if(t) s.add(t);
+      }
+      return Array.from(s);
+    }
+
+    // -------------------------
+    // Scheduler (SM-2-ish)
+    // grade: 0 Again, 1 Hard, 2 Good, 3 Easy
+    // -------------------------
+    function schedule(card, grade, mode){
+      const s = card.sched || (card.sched = DEFAULT_SCHED());
+      const t = now();
+      s.lastReviewedAt = t;
+      s.lastGrade = grade;
+
+      // Cram mode: don’t change long-term scheduling
+      if(mode === "cram"){
+        // But keep a tiny bit of telemetry
+        return s;
+      }
+
+      // Map grade -> quality (0..5) roughly
+      const q = [2, 3, 4, 5][grade] ?? 4;
+
+      if(q < 3){
+        s.lapses += 1;
+        s.rep = 0;
+        s.intervalDays = 0;
+        // Penalize ease
+        s.ease = Math.max(1.3, s.ease - 0.2);
+        // See again soon
+        s.dueAt = t + 10 * 60 * 1000; // 10 minutes
+        return s;
+      }
+
+      // success
+      s.rep += 1;
+      // adjust ease
+      s.ease = s.ease + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02));
+      s.ease = Math.min(2.8, Math.max(1.3, s.ease));
+
+      if(s.rep === 1) s.intervalDays = 1;
+      else if(s.rep === 2) s.intervalDays = 3;
+      else {
+        const mult = grade === 3 ? 1.35 : (grade === 1 ? 0.8 : 1.0);
+        s.intervalDays = Math.max(1, Math.round(s.intervalDays * s.ease * mult));
+      }
+
+      // easy bonus
+      if(grade === 3 && s.rep >= 2) s.intervalDays = Math.round(s.intervalDays * 1.15);
+
+      s.dueAt = t + s.intervalDays * 24 * 60 * 60 * 1000;
+      return s;
+    }
+
+    function resetScheduling(card){
+      card.sched = DEFAULT_SCHED();
+    }
+
+    // -------------------------
+    // State
+    // -------------------------
+    const state = {
+      store: loadStore(),
+      ui: {
+        filter: "",
+        studyMode: "due",
+      },
+      session: {
+        queue: /** @type {string[]} */([]),
+        index: 0,
+        showingBack: false,
+        shuffled: false,
+      },
+      editing: {
+        deckId: null,
+        cardId: null,
+      }
+    };
+
+    // -------------------------
+    // Helpers
+    // -------------------------
+    function esc(s){
+      return (s ?? "").replace(/[&<>\"']/g, c => ({
+        '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+      }[c]));
+    }
+
+    function fmtRelative(ms){
+      const d = ms - now();
+      const abs = Math.abs(d);
+      const min = 60*1000;
+      const hr = 60*min;
+      const day = 24*hr;
+      const sign = d < 0 ? "overdue" : "in";
+
+      if(abs < 45*1000) return d < 0 ? "overdue" : "due now";
+      if(abs < 90*min){
+        const m = Math.round(abs/min);
+        return d < 0 ? `${m}m overdue` : `in ${m}m`;
+      }
+      if(abs < 36*hr){
+        const h = Math.round(abs/hr);
+        return d < 0 ? `${h}h overdue` : `in ${h}h`;
+      }
+      const days = Math.round(abs/day);
+      return d < 0 ? `${days}d overdue` : `in ${days}d`;
+    }
+
+    function getSelectedDeck(){
+      const id = state.store.selectedDeckId;
+      if(!id) return null;
+      return state.store.decks[id] || null;
+    }
+
+    function computeDeckCounts(deck){
+      const t = now();
+      let due=0, newCount=0;
+      for(const c of deck.cards){
+        const s = c.sched || DEFAULT_SCHED();
+        const isNew = (s.rep ?? 0) === 0 && (!s.lastReviewedAt);
+        if(isNew) newCount++;
+        if((s.dueAt ?? t) <= t) due++;
+      }
+      return { due, newCount, total: deck.cards.length };
+    }
+
+    function getQueue(deck, mode){
+      const t = now();
+      const ids = deck.cards.map(c=>c.id);
+      const byId = new Map(deck.cards.map(c=>[c.id,c]));
+
+      function isNewCard(c){
+        const s = c.sched || DEFAULT_SCHED();
+        return (s.rep ?? 0) === 0 && (!s.lastReviewedAt);
+      }
+
+      let arr = ids.filter(id => byId.has(id));
+
+      if(mode === "new"){
+        arr = arr.filter(id => isNewCard(byId.get(id)));
+      } else if(mode === "due"){
+        const dueIds = arr.filter(id => (byId.get(id).sched?.dueAt ?? t) <= t);
+        const newIds = arr.filter(id => isNewCard(byId.get(id)));
+        // due first, then new (but avoid duplicates)
+        const set = new Set([...dueIds, ...newIds]);
+        arr = Array.from(set);
+      } else if(mode === "all" || mode === "cram"){
+        // keep all
+      }
+
+      // Sort by due time to create a sensible flow (except cram/all can be shuffled)
+      if(mode === "due" || mode === "new"){
+        arr.sort((a,b)=>{
+          const ca = byId.get(a), cb = byId.get(b);
+          const da = (ca.sched?.dueAt ?? t);
+          const db = (cb.sched?.dueAt ?? t);
+          return da - db;
+        });
+      }
+      return arr;
+    }
+
+    function shuffleInPlace(a){
+      for(let i=a.length-1;i>0;i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [a[i],a[j]] = [a[j],a[i]];
+      }
+      return a;
+    }
+
+    function setSelectedDeck(id){
+      state.store.selectedDeckId = id;
+      saveStore();
+      state.session.queue = [];
+      state.session.index = 0;
+      state.session.showingBack = false;
+      render();
+    }
+
+    function ensureSelectedDeck(){
+      const ids = Object.keys(state.store.decks);
+      if(state.store.selectedDeckId && state.store.decks[state.store.selectedDeckId]) return;
+      state.store.selectedDeckId = ids[0] || null;
+    }
+
+    function upsertDeck(name, cards, sourceFiles=[]){
+      // If a deck exists with same name, merge cards (by exact front+back)
+      const existingId = Object.values(state.store.decks).find(d => d.name.trim().toLowerCase() === name.trim().toLowerCase())?.id;
+      let deck;
+      if(existingId){
+        deck = state.store.decks[existingId];
+      } else {
+        const id = uid('deck');
+        deck = { id, name: name.trim() || "Untitled", createdAt: now(), updatedAt: now(), sourceFiles: [], cards: [] };
+        state.store.decks[id] = deck;
+      }
+
+      const keyOf = (front, back) => (front.trim() + "\n::\n" + back.trim()).toLowerCase();
+      const map = new Map(deck.cards.map(c => [keyOf(c.front,c.back), c]));
+      let added = 0;
+
+      for(const c of cards){
+        const k = keyOf(c.front, c.back);
+        if(map.has(k)){
+          // merge tags only
+          const ex = map.get(k);
+          ex.tags = uniq([...(ex.tags||[]), ...(c.tags||[])]);
+          ex.updatedAt = now();
+        } else {
+          const nc = {
+            id: uid('card'),
+            front: c.front,
+            back: c.back,
+            tags: uniq(c.tags||[]),
+            createdAt: now(),
+            updatedAt: now(),
+            sched: DEFAULT_SCHED(),
+          };
+          deck.cards.push(nc);
+          map.set(k, nc);
+          added++;
+        }
+      }
+
+      deck.updatedAt = now();
+      deck.sourceFiles = uniq([...(deck.sourceFiles||[]), ...sourceFiles]);
+
+      saveStore();
+      ensureSelectedDeck();
+      if(!state.store.selectedDeckId) state.store.selectedDeckId = deck.id;
+      toast("Imported", `${deck.name}: +${added} new card(s).`);
+      render();
+    }
+
+    // -------------------------
+    // Rendering
+    // -------------------------
+    function renderDeckList(){
+      const list = document.getElementById('deckList');
+      const q = (state.ui.filter||"").trim().toLowerCase();
+      const decks = Object.values(state.store.decks).sort((a,b)=> (b.updatedAt||0)-(a.updatedAt||0));
+
+      list.innerHTML = "";
+
+      if(decks.length === 0){
+        const empty = document.createElement('div');
+        empty.className = 'tiny muted';
+        empty.textContent = "No decks yet. Import a .txt file or create a deck.";
+        list.appendChild(empty);
+        return;
+      }
+
+      for(const d of decks){
+        const counts = computeDeckCounts(d);
+        const tagSet = new Set();
+        for(const c of d.cards){ for(const t of (c.tags||[])) tagSet.add(t.toLowerCase()); }
+        const tagStr = Array.from(tagSet).join(' ');
+        const hay = (d.name + " " + tagStr).toLowerCase();
+        if(q && !hay.includes(q)) continue;
+
+        const el = document.createElement('div');
+        el.className = 'deck' + (state.store.selectedDeckId === d.id ? ' active' : '');
+        el.innerHTML = `
+          <div class="name"></div>
+          <div class="meta">
+            <span class="pill">${counts.total} cards</span>
+            <span class="pill">${counts.due} due</span>
+            <span class="pill">${counts.newCount} new</span>
+          </div>
+        `;
+        el.querySelector('.name').textContent = d.name;
+        el.addEventListener('click', ()=> setSelectedDeck(d.id));
+        list.appendChild(el);
+      }
+    }
+
+    function renderStudy(){
+      const deck = getSelectedDeck();
+      const pillDeck = document.getElementById('pillDeck');
+      const pillQueue = document.getElementById('pillQueue');
+      const pillStats = document.getElementById('pillStats');
+      const flashLabel = document.getElementById('flashLabel');
+      const flashContent = document.getElementById('flashContent');
+      const flashFootLeft = document.getElementById('flashFootLeft');
+      const flashFootRight = document.getElementById('flashFootRight');
+      const gradeRow = document.getElementById('gradeRow');
+
+      if(!deck){
+        pillDeck.textContent = "No deck selected";
+        pillQueue.textContent = "Queue: —";
+        pillStats.textContent = "—";
+        flashLabel.textContent = "Select a deck to begin";
+        flashContent.textContent = "Import a deck file (or create one) and press Start.";
+        flashFootLeft.textContent = "—";
+        flashFootRight.textContent = "—";
+        gradeRow.style.display = 'none';
+        return;
+      }
+
+      const counts = computeDeckCounts(deck);
+      pillDeck.textContent = deck.name;
+      pillStats.textContent = `${counts.due} due • ${counts.newCount} new • ${counts.total} total`;
+
+      const queue = state.session.queue;
+      pillQueue.textContent = `Queue: ${queue.length ? (state.session.index+1) + "/" + queue.length : "—"}`;
+
+      if(queue.length === 0){
+        flashLabel.textContent = "Ready";
+        flashContent.textContent = "Press Start to build a study queue.";
+        flashFootLeft.textContent = `${state.ui.studyMode} mode`;
+        flashFootRight.textContent = "";
+        gradeRow.style.display = 'none';
+        return;
+      }
+
+      const cardId = queue[state.session.index] || queue[0];
+      const card = deck.cards.find(c=>c.id===cardId) || deck.cards[0];
+      if(!card){
+        flashLabel.textContent = "No cards";
+        flashContent.textContent = "This deck is empty.";
+        gradeRow.style.display = 'none';
+        return;
+      }
+
+      const s = card.sched || DEFAULT_SCHED();
+      const front = card.front ?? "";
+      const back = card.back ?? "";
+      const showingBack = state.session.showingBack;
+
+      flashLabel.textContent = showingBack ? "Back" : "Front";
+      flashContent.textContent = showingBack ? back : front;
+      flashContent.classList.toggle('small', (flashContent.textContent.length > 240));
+
+      const tags = (card.tags||[]).slice(0,4).join(', ');
+      flashFootLeft.textContent = tags ? `tags: ${tags}` : `tags: —`;
+      flashFootRight.textContent = s ? `due: ${fmtRelative(s.dueAt ?? now())} • ease: ${(s.ease??2.5).toFixed(2)} • rep: ${s.rep??0}` : "";
+
+      gradeRow.style.display = showingBack ? 'flex' : 'none';
+    }
+
+    function renderManageDeckSelect(){
+      const sel = document.getElementById('manageDeck');
+      const decks = Object.values(state.store.decks).sort((a,b)=>a.name.localeCompare(b.name));
+      sel.innerHTML = "";
+      for(const d of decks){
+        const opt = document.createElement('option');
+        opt.value = d.id;
+        opt.textContent = d.name;
+        sel.appendChild(opt);
+      }
+      if(decks.length){
+        sel.value = state.store.selectedDeckId || decks[0].id;
+      }
+    }
+
+    function renderCardTable(){
+      const deckId = document.getElementById('manageDeck').value;
+      const deck = state.store.decks[deckId];
+      const tbody = document.querySelector('#cardTable tbody');
+      const q = (document.getElementById('cardSearch').value||"").trim().toLowerCase();
+      tbody.innerHTML = "";
+      if(!deck){ return; }
+
+      const cards = deck.cards.slice().sort((a,b)=> (a.front||"").localeCompare(b.front||""));
+
+      for(const c of cards){
+        const hay = (c.front+"\n"+c.back+"\n"+(c.tags||[]).join(' ')).toLowerCase();
+        if(q && !hay.includes(q)) continue;
+
+        const tr = document.createElement('tr');
+        const tdF = document.createElement('td');
+        const tdB = document.createElement('td');
+        const tdA = document.createElement('td');
+        tdF.innerHTML = `<div style="white-space:pre-wrap">${esc(shorten(c.front, 240))}</div>${renderTagsInline(c.tags)}`;
+        tdB.innerHTML = `<div style="white-space:pre-wrap">${esc(shorten(c.back, 240))}</div>`;
+        tdA.innerHTML = `
+          <button class="btn" data-act="edit">Edit</button>
+        `;
+        tdA.querySelector('button').addEventListener('click', ()=> startEditCard(deckId, c.id));
+
+        tr.appendChild(tdF); tr.appendChild(tdB); tr.appendChild(tdA);
+        tbody.appendChild(tr);
+      }
+    }
+
+    function renderTagsInline(tags){
+      const ts = (tags||[]).slice(0,6);
+      if(!ts.length) return '';
+      return `<div>${ts.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>`;
+    }
+
+    function shorten(s, n){
+      s = (s||"").trim();
+      if(s.length <= n) return s;
+      return s.slice(0, n-1) + "…";
+    }
+
+    function renderSchedPreview(deckId, cardId){
+      const el = document.getElementById('schedPreview');
+      const deck = state.store.decks[deckId];
+      if(!deck){ el.textContent = "Select a card to see its scheduling state."; return; }
+      const card = deck.cards.find(c=>c.id===cardId);
+      if(!card){ el.textContent = "Select a card to see its scheduling state."; return; }
+      const s = card.sched || DEFAULT_SCHED();
+      el.innerHTML = `
+        <div class="tiny"><b>Card</b>: <span class="mono">${esc(card.id)}</span></div>
+        <div class="tiny"><b>rep</b>: ${s.rep} • <b>intervalDays</b>: ${s.intervalDays} • <b>ease</b>: ${s.ease.toFixed(2)} • <b>lapses</b>: ${s.lapses}</div>
+        <div class="tiny"><b>due</b>: ${new Date(s.dueAt).toLocaleString()} (${fmtRelative(s.dueAt)})</div>
+        <div class="tiny"><b>lastReviewed</b>: ${s.lastReviewedAt ? new Date(s.lastReviewedAt).toLocaleString() : "—"} • <b>lastGrade</b>: ${s.lastGrade ?? "—"}</div>
+      `;
+    }
+
+    function render(){
+      ensureSelectedDeck();
+      renderDeckList();
+      renderStudy();
+      // manage modal parts (if open)
+      if(document.getElementById('manageModal').classList.contains('open')){
+        renderManageDeckSelect();
+        renderCardTable();
+      }
+    }
+
+    // -------------------------
+    // Study actions
+    // -------------------------
+    function startSession(){
+      const deck = getSelectedDeck();
+      if(!deck){ toast("No deck", "Import or create a deck first."); return; }
+      if(deck.cards.length === 0){ toast("Empty deck", "This deck has no cards."); return; }
+      const mode = state.ui.studyMode;
+      state.session.queue = getQueue(deck, mode);
+      state.session.index = 0;
+      state.session.showingBack = false;
+      state.session.shuffled = false;
+      if(state.session.queue.length === 0){
+        toast("Nothing to study", "No cards match the current study mode.");
+      }
+      render();
+    }
+
+    function flip(){
+      const deck = getSelectedDeck();
+      if(!deck) return;
+      if(state.session.queue.length === 0) return;
+      state.session.showingBack = !state.session.showingBack;
+      renderStudy();
+    }
+
+    function nextCard(){
+      if(state.session.queue.length === 0) return;
+      state.session.index = Math.min(state.session.queue.length-1, state.session.index + 1);
+      state.session.showingBack = false;
+      renderStudy();
+    }
+
+    function prevCard(){
+      if(state.session.queue.length === 0) return;
+      state.session.index = Math.max(0, state.session.index - 1);
+      state.session.showingBack = false;
+      renderStudy();
+    }
+
+    function gradeCard(grade){
+      const deck = getSelectedDeck();
+      if(!deck) return;
+      if(state.session.queue.length === 0) return;
+      const id = state.session.queue[state.session.index];
+      const card = deck.cards.find(c=>c.id===id);
+      if(!card) return;
+      schedule(card, grade, state.ui.studyMode);
+      card.updatedAt = now();
+      deck.updatedAt = now();
+      saveStore();
+
+      // If it was "Again" in due/new/all mode, reinsert a few cards later
+      if(state.ui.studyMode !== "cram" && grade === 0){
+        const insertAt = Math.min(state.session.queue.length, state.session.index + 4);
+        state.session.queue.splice(insertAt, 0, id);
+      }
+
+      // advance
+      state.session.index += 1;
+      if(state.session.index >= state.session.queue.length){
+        state.session.index = state.session.queue.length - 1;
+        state.session.showingBack = false;
+        toast("Session", "Queue complete (or you reached the end). Press Start to rebuild.");
+        render();
+        return;
+      }
+      state.session.showingBack = false;
+      render();
+    }
+
+    function resetCurrentCard(){
+      const deck = getSelectedDeck();
+      if(!deck) return;
+      if(state.session.queue.length === 0) return;
+      const id = state.session.queue[state.session.index];
+      const card = deck.cards.find(c=>c.id===id);
+      if(!card) return;
+      resetScheduling(card);
+      card.updatedAt = now();
+      deck.updatedAt = now();
+      saveStore();
+      toast("Reset", "Card scheduling reset.");
+      renderStudy();
+    }
+
+    function shuffleQueue(){
+      if(state.session.queue.length === 0){ toast("Nothing", "Press Start first."); return; }
+      shuffleInPlace(state.session.queue);
+      state.session.index = 0;
+      state.session.showingBack = false;
+      state.session.shuffled = true;
+      toast("Shuffled", "Queue shuffled.");
+      renderStudy();
+    }
+
+    // -------------------------
+    // Manage / Edit
+    // -------------------------
+    function openModal(id){
+      const m = document.getElementById(id);
+      m.classList.add('open');
+      m.setAttribute('aria-hidden','false');
+      if(id === 'manageModal'){
+        renderManageDeckSelect();
+        renderCardTable();
+      }
+    }
+    function closeModal(id){
+      const m = document.getElementById(id);
+      m.classList.remove('open');
+      m.setAttribute('aria-hidden','true');
+    }
+
+    function startEditCard(deckId, cardId){
+      state.editing.deckId = deckId;
+      state.editing.cardId = cardId;
+      const deck = state.store.decks[deckId];
+      const card = deck?.cards.find(c=>c.id===cardId);
+      if(!card) return;
+
+      document.getElementById('editId').value = card.id;
+      document.getElementById('editFront').value = card.front || "";
+      document.getElementById('editBack').value = card.back || "";
+      document.getElementById('editTags').value = (card.tags || []).join(', ');
+      renderSchedPreview(deckId, cardId);
+    }
+
+    function clearEdit(){
+      state.editing.deckId = null;
+      state.editing.cardId = null;
+      document.getElementById('editId').value = "";
+      document.getElementById('editFront').value = "";
+      document.getElementById('editBack').value = "";
+      document.getElementById('editTags').value = "";
+      document.getElementById('schedPreview').textContent = "Select a card to see its scheduling state.";
+    }
+
+    function saveEditedCard(){
+      const deckId = state.editing.deckId;
+      const cardId = state.editing.cardId;
+      if(!deckId || !cardId){ toast("No card", "Select a card to edit."); return; }
+      const deck = state.store.decks[deckId];
+      const card = deck?.cards.find(c=>c.id===cardId);
+      if(!card) return;
+      const front = document.getElementById('editFront').value.trim();
+      const back = document.getElementById('editBack').value.trim();
+      const tags = uniq(document.getElementById('editTags').value.split(',').map(s=>s.trim()));
+      if(!front || !back){ toast("Missing", "Front and Back are required."); return; }
+      card.front = front;
+      card.back = back;
+      card.tags = tags;
+      card.updatedAt = now();
+      deck.updatedAt = now();
+      saveStore();
+      toast("Saved", "Card updated.");
+      renderCardTable();
+      renderStudy();
+      renderSchedPreview(deckId, cardId);
+    }
+
+    function deleteEditedCard(){
+      const deckId = state.editing.deckId;
+      const cardId = state.editing.cardId;
+      if(!deckId || !cardId){ toast("No card", "Select a card."); return; }
+      const deck = state.store.decks[deckId];
+      if(!deck) return;
+      const idx = deck.cards.findIndex(c=>c.id===cardId);
+      if(idx < 0) return;
+      if(!confirm("Delete this card?")) return;
+      deck.cards.splice(idx,1);
+      deck.updatedAt = now();
+      saveStore();
+      clearEdit();
+      toast("Deleted", "Card removed.");
+      // remove from queue
+      state.session.queue = state.session.queue.filter(id=>id!==cardId);
+      state.session.index = Math.min(state.session.index, Math.max(0, state.session.queue.length-1));
+      render();
+    }
+
+    function resetEditedCardScheduling(){
+      const deckId = state.editing.deckId;
+      const cardId = state.editing.cardId;
+      const deck = state.store.decks[deckId];
+      const card = deck?.cards.find(c=>c.id===cardId);
+      if(!card){ toast("No card", "Select a card."); return; }
+      resetScheduling(card);
+      card.updatedAt = now();
+      deck.updatedAt = now();
+      saveStore();
+      toast("Reset", "Card scheduling reset.");
+      renderSchedPreview(deckId, cardId);
+      renderStudy();
+    }
+
+    function addCardToDeck(deckId){
+      const deck = state.store.decks[deckId];
+      if(!deck) return;
+      const c = { id: uid('card'), front: "", back: "", tags: [], createdAt: now(), updatedAt: now(), sched: DEFAULT_SCHED() };
+      deck.cards.push(c);
+      deck.updatedAt = now();
+      saveStore();
+      startEditCard(deckId, c.id);
+      renderCardTable();
+      toast("New card", "Fill it in and press Save.");
+    }
+
+    function createDeck(name){
+      name = (name||"").trim();
+      if(!name){ toast("Name", "Deck name required."); return; }
+      const id = uid('deck');
+      state.store.decks[id] = { id, name, createdAt: now(), updatedAt: now(), sourceFiles: [], cards: [] };
+      state.store.selectedDeckId = id;
+      saveStore();
+      toast("Created", `Deck “${name}” created.`);
+      render();
+    }
+
+    function deleteDeck(deckId){
+      const deck = state.store.decks[deckId];
+      if(!deck) return;
+      if(!confirm(`Delete deck “${deck.name}” and all its cards?`)) return;
+      delete state.store.decks[deckId];
+      if(state.store.selectedDeckId === deckId) state.store.selectedDeckId = null;
+      saveStore();
+      state.session.queue = [];
+      state.session.index = 0;
+      state.session.showingBack = false;
+      toast("Deleted", "Deck removed.");
+      render();
+    }
+
+    // -------------------------
+    // Import/export
+    // -------------------------
+    async function importFiles(fileList){
+      const files = Array.from(fileList || []);
+      if(files.length === 0) return;
+      let importedDecks = 0;
+      for(const f of files){
+        const text = await f.text();
+        let decks;
+        try{
+          decks = parseDeckText(text, f.name);
+        }catch(e){
+          console.error(e);
+          toast("Parse error", `${f.name}: ${e.message || e}` , 5000);
+          continue;
+        }
+        if(decks.length === 0){
+          toast("No cards", `${f.name}: no cards found.`);
+          continue;
+        }
+        for(const d of decks){
+          upsertDeck(d.name, d.cards, [f.name]);
+          importedDecks++;
+        }
+      }
+      if(importedDecks){
+        toast("Done", `Imported ${importedDecks} deck(s).`);
+      }
+      render();
+    }
+
+    function download(filename, content, mime="text/plain"){
+      const blob = new Blob([content], {type:mime});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(()=>{
+        URL.revokeObjectURL(a.href);
+        a.remove();
+      }, 0);
+    }
+
+    function exportAll(){
+      const data = {
+        exportedAt: now(),
+        app: "FlashDeck",
+        version: 1,
+        store: state.store,
+      };
+      download(`flashdeck-backup-${new Date().toISOString().slice(0,10)}.json`, JSON.stringify(data, null, 2), "application/json");
+    }
+
+    function exportDeck(deckId){
+      const deck = state.store.decks[deckId];
+      if(!deck){ toast("No deck", "Select a deck." ); return; }
+      const data = {
+        exportedAt: now(),
+        version: 1,
+        deck,
+      };
+      const safeName = deck.name.replace(/[^a-z0-9\-_. ]/gi,'_').slice(0,60).trim().replace(/\s+/g,'-') || "deck";
+      download(`deck-${safeName}.json`, JSON.stringify(data, null, 2), "application/json");
+    }
+
+    async function importBackup(file){
+      const text = await file.text();
+      let data;
+      try{ data = JSON.parse(text); }catch(e){ toast("Bad JSON", "Could not parse backup."); return; }
+      const store = data.store;
+      if(!store || typeof store !== 'object' || !store.decks){
+        toast("Invalid", "Backup file not recognized.");
+        return;
+      }
+      if(!confirm("Restore backup? This will replace your current local data.")) return;
+      state.store = store;
+      saveStore();
+      state.session.queue = [];
+      state.session.index = 0;
+      state.session.showingBack = false;
+      toast("Restored", "Backup restored.");
+      render();
+    }
+
+    function wipeAll(){
+      if(!confirm("Wipe all local FlashDeck data? This cannot be undone.")) return;
+      localStorage.removeItem(STORE_KEY);
+      state.store = { version: 1, selectedDeckId: null, decks: {} };
+      state.session.queue = [];
+      state.session.index = 0;
+      state.session.showingBack = false;
+      toast("Wiped", "Local data cleared.");
+      render();
+    }
+
+    // -------------------------
+    // Wire up UI
+    // -------------------------
+    const fileInput = document.getElementById('fileInput');
+    document.getElementById('btnImport').addEventListener('click', ()=> fileInput.click());
+    fileInput.addEventListener('change', ()=> importFiles(fileInput.files));
+
+    document.getElementById('btnHelp').addEventListener('click', ()=> openModal('helpModal'));
+    document.getElementById('btnCloseHelp').addEventListener('click', ()=> closeModal('helpModal'));
+
+    document.getElementById('btnManage').addEventListener('click', ()=> openModal('manageModal'));
+    document.getElementById('btnCloseManage').addEventListener('click', ()=> closeModal('manageModal'));
+
+    document.getElementById('btnBackup').addEventListener('click', ()=> openModal('backupModal'));
+    document.getElementById('btnCloseBackup').addEventListener('click', ()=> closeModal('backupModal'));
+
+    document.getElementById('btnNewDeck').addEventListener('click', ()=>{ openModal('manageModal'); setTimeout(()=> document.getElementById('newDeckName').focus(), 50); });
+
+    document.getElementById('filter').addEventListener('input', (e)=>{ state.ui.filter = e.target.value; renderDeckList(); });
+    document.getElementById('studyMode').addEventListener('change', (e)=>{ state.ui.studyMode = e.target.value; renderStudy(); });
+
+    document.getElementById('btnStart').addEventListener('click', startSession);
+    document.getElementById('btnShuffle').addEventListener('click', shuffleQueue);
+    document.getElementById('btnResetCard').addEventListener('click', resetCurrentCard);
+    document.getElementById('btnPeek').addEventListener('click', flip);
+
+    document.getElementById('flash').addEventListener('click', flip);
+
+    document.getElementById('gradeRow').addEventListener('click', (e)=>{
+      const btn = e.target.closest('button');
+      if(!btn) return;
+      const g = Number(btn.getAttribute('data-grade'));
+      gradeCard(g);
+    });
+
+    // Manage wiring
+    document.getElementById('manageDeck').addEventListener('change', ()=>{ clearEdit(); renderCardTable(); });
+    document.getElementById('cardSearch').addEventListener('input', renderCardTable);
+    document.getElementById('btnAddCard').addEventListener('click', ()=> addCardToDeck(document.getElementById('manageDeck').value));
+    document.getElementById('btnSaveCard').addEventListener('click', saveEditedCard);
+    document.getElementById('btnCancelEdit').addEventListener('click', clearEdit);
+    document.getElementById('btnDeleteCard').addEventListener('click', deleteEditedCard);
+    document.getElementById('btnResetThisCard').addEventListener('click', resetEditedCardScheduling);
+    document.getElementById('btnCreateDeck').addEventListener('click', ()=>{
+      const name = document.getElementById('newDeckName').value;
+      document.getElementById('newDeckName').value = "";
+      createDeck(name);
+      renderManageDeckSelect();
+      document.getElementById('manageDeck').value = state.store.selectedDeckId;
+      renderCardTable();
+    });
+    document.getElementById('btnDeleteDeck').addEventListener('click', ()=>{
+      const id = document.getElementById('manageDeck').value;
+      deleteDeck(id);
+      renderManageDeckSelect();
+      clearEdit();
+      renderCardTable();
+    });
+    document.getElementById('btnExportDeck').addEventListener('click', ()=> exportDeck(document.getElementById('manageDeck').value));
+
+    // Backup wiring
+    document.getElementById('btnExportAll').addEventListener('click', exportAll);
+    document.getElementById('btnWipeAll').addEventListener('click', wipeAll);
+
+    const backupInput = document.getElementById('backupInput');
+    backupInput.style.display = 'none';
+    document.getElementById('btnImportBackup').addEventListener('click', ()=> backupInput.click());
+    backupInput.addEventListener('change', ()=>{
+      const f = backupInput.files && backupInput.files[0];
+      if(f) importBackup(f);
+    });
+
+    // Drag/drop
+    const drop = document.getElementById('drop');
+    drop.addEventListener('dragover', (e)=>{ e.preventDefault(); drop.classList.add('dragover'); });
+    drop.addEventListener('dragleave', ()=> drop.classList.remove('dragover'));
+    drop.addEventListener('drop', (e)=>{
+      e.preventDefault();
+      drop.classList.remove('dragover');
+      if(e.dataTransfer?.files?.length) importFiles(e.dataTransfer.files);
+    });
+
+    // Keyboard shortcuts
+    window.addEventListener('keydown', (e)=>{
+      const isModalOpen = document.querySelector('.modalWrap.open');
+      // Escape closes modal
+      if(e.key === 'Escape'){
+        const open = document.querySelectorAll('.modalWrap.open');
+        open.forEach(m=> closeModal(m.id));
+        return;
+      }
+      if(isModalOpen){
+        return; // don’t interfere while editing
+      }
+      if(e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT')){
+        return;
+      }
+      if(e.code === 'Space'){
+        e.preventDefault();
+        flip();
+        return;
+      }
+      if(e.key === 'n' || e.key === 'N'){
+        nextCard();
+        return;
+      }
+      if(e.key === 'p' || e.key === 'P'){
+        prevCard();
+        return;
+      }
+      if(e.key === 'r' || e.key === 'R'){
+        resetCurrentCard();
+        return;
+      }
+      if(['1','2','3','4'].includes(e.key)){
+        if(state.session.showingBack){
+          gradeCard(Number(e.key)-1);
+        }
+        return;
+      }
+    });
+
+    // Close modals when clicking backdrop
+    for(const id of ['helpModal','manageModal','backupModal']){
+      const m = document.getElementById(id);
+      m.addEventListener('click', (e)=>{
+        if(e.target === m) closeModal(id);
+      });
+    }
+
+    // Initialize
+    ensureSelectedDeck();
+    saveStore();
+    render();
+
+    // Friendly first-run
+    if(Object.keys(state.store.decks).length === 0){
+      toast("Welcome", "Import a .txt deck to start (Format / Help explains the syntax).", 5200);
+    }
+
+  })();
+  </script>
+</body>
+</html>
