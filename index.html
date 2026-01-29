@@ -1445,6 +1445,31 @@ SELECT * FROM users WHERE id = ?;
       render();
     }
 
+    async function preloadLocalDecks(){
+      const files = ["mathfcs.txt", "engnrfcs.txt", "scncfcs.txt"];
+      let loaded = 0;
+      for(const name of files){
+        try{
+          const res = await fetch(name, { cache: "no-store" });
+          if(!res.ok) continue; // missing or not accessible
+          const text = await res.text();
+          const decks = parseDeckText(text, name);
+          if(decks.length === 0) continue;
+          for(const d of decks){
+            upsertDeck(d.name, d.cards, [name]);
+            loaded++;
+          }
+        }catch(e){
+          // silent fail: app still works without these files
+          console.warn("Preload failed", name, e);
+        }
+      }
+      if(loaded){
+        toast("Loaded", `Preloaded ${loaded} deck(s) from local files.`);
+      }
+      render();
+    }
+
     function download(filename, content, mime="text/plain"){
       const blob = new Blob([content], {type:mime});
       const a = document.createElement('a');
@@ -1644,6 +1669,9 @@ SELECT * FROM users WHERE id = ?;
     ensureSelectedDeck();
     saveStore();
     render();
+
+    // Preload local deck files (if present)
+    preloadLocalDecks();
 
     // Friendly first-run
     if(Object.keys(state.store.decks).length === 0){
