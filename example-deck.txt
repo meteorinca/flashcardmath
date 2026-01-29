@@ -11,3 +11,151 @@ Write a safe SQL query with a parameter
 SELECT * FROM users WHERE id = ?;
 ---
 [tag=sql,security]
+
+#deck: Physics — Core Concepts
+---
+Newton's First Law of Motion
+---
+---
+An object at rest stays at rest, and an object in motion stays in motion with the same speed and in the same direction unless acted upon by an unbalanced force.
+---
+[tag=physics,mechanics,laws]
+
+#deck: Engineering — Electrical
+---
+Ohm's Law formula
+---
+---
+V = I * R
+(Voltage = Current multiplied by Resistance)
+---
+[tag=engineering,electrical,formula]
+
+#deck: Math — Calculus
+---
+The derivative of a constant
+---
+---
+The derivative of a constant is 0.
+---
+[tag=math,calculus,derivatives]
+
+#deck: Technology — Networking
+---
+Default port for HTTPS
+---
+---
+443
+---
+[tag=technology,networking,web]
+
+#deck: Physics — Thermodynamics
+---
+The First Law of Thermodynamics
+---
+---
+Energy cannot be created or destroyed, only transferred or changed from one form to another. (Conservation of Energy)
+---
+[tag=physics,thermodynamics,laws]
+
+#deck: Engineering — Mechanics
+---
+Factor of Safety (FoS) definition
+---
+---
+FoS = (Ultimate Strength) / (Allowable Stress)
+A measure of the load-carrying capacity beyond the intended load.
+---
+[tag=engineering,mechanics,design]
+
+#deck: Math — Linear Algebra
+---
+Identity matrix property
+---
+---
+When multiplied by any compatible matrix A, the identity matrix I yields A.
+A * I = I * A = A
+---
+[tag=math,linear-algebra,matrices]
+
+#deck: Technology — Programming
+---
+Single responsibility principle (SOLID)
+---
+---
+A class should have only one reason to change, meaning it should have only one job or responsibility.
+---
+[tag=technology,programming,oop]
+
+#deck: Physics — Quantum
+---
+Planck's constant (approximate value)
+---
+---
+6.626 x 10^-34 J·s
+---
+[tag=physics,quantum,constants]
+
+#deck: Engineering — Civil
+---
+The five types of loads on a structure
+---
+---
+Dead, Live, Wind, Snow, Seismic (Earthquake)
+---
+[tag=engineering,civil,design]
+
+#deck: Math — Statistics
+---
+Central Limit Theorem core idea
+---
+---
+The distribution of the sample means approximates a normal distribution as the sample size becomes large, regardless of the population's distribution.
+---
+[tag=math,statistics,theorems]
+
+#deck: Technology — OS
+---
+What is virtual memory?
+---
+---
+A memory management technique that uses hardware and software to allow a computer to compensate for physical memory shortages, using disk space as an extension of RAM.
+---
+[tag=technology,operating-systems]
+
+#deck: Physics — Electromagnetism
+---
+Right-hand rule for a current-carrying wire
+---
+---
+Point your thumb in the direction of the conventional current (+ to -). Your fingers curl in the direction of the magnetic field lines.
+---
+[tag=physics,electromagnetism,rules]
+
+#deck: Engineering — Software
+---
+What is 'Big O notation' used for?
+---
+---
+It describes the upper bound of an algorithm's time or space complexity, classifying performance as input size grows.
+---
+[tag=engineering,software,algorithms]
+
+#deck: Math — Geometry
+---
+Pythagorean theorem formula
+---
+---
+a² + b² = c²
+(for a right triangle, where c is the hypotenuse)
+---
+[tag=math,geometry,theorems]
+
+#deck: Technology — Security
+---
+Difference between symmetric and asymmetric encryption
+---
+---
+Symmetric uses one shared key. Asymmetric uses a public key to encrypt and a private key to decrypt.
+---
+[tag=technology,security,cryptography]
